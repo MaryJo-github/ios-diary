@@ -6,7 +6,7 @@
 
 import UIKit
 
-final class DiaryViewController: UIViewController {
+final class DiaryViewController: UIViewController, UITableViewDelegate {
     private let diaryManager = DiaryManager()
     private var data: [DiaryContent]?
     
@@ -24,6 +24,8 @@ final class DiaryViewController: UIViewController {
         configureTableView()
         setUpConstraints()
         fetchData()
+        
+        tableView.delegate = self
     }
     
     private func configureView() {
@@ -36,8 +38,23 @@ final class DiaryViewController: UIViewController {
     private func configureNavigationItem() {
         navigationItem.title = "일기장"
         
-        let addDiaryBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: nil)
+        let addDiaryBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add,
+                                                    target: self,
+                                                    action: #selector(todayDiaryViewController))
+        
         navigationItem.rightBarButtonItem = addDiaryBarButtonItem
+    }
+    
+    @objc private func todayDiaryViewController() {
+        let today = DiaryDateFormatter().format(from: Date(), by: "yyyyMMMd")
+        
+        showNextViewController(date: today)
+    }
+    
+    private func showNextViewController(date: String) {
+        let editingDiaryViewController = EditingDiaryViewController()
+        
+        show(editingDiaryViewController, sender: self)
     }
     
     private func configureTableView() {
@@ -78,5 +95,9 @@ extension DiaryViewController: UITableViewDataSource {
         cell.configureCell(data: data[indexPath.row])
 
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
     }
 }

@@ -13,6 +13,8 @@ struct DiaryDateFormatter {
     func format(from date: Date, by form: String) -> String {
         dateFormatter.locale = Locale(identifier: Locale.current.identifier)
         dateFormatter.setLocalizedDateFormatFromTemplate(form)
+//        dateFormatter.dateStyle = .long
+//        dateFormatter.timeStyle = .none
         
         return dateFormatter.string(from: date)
     }
