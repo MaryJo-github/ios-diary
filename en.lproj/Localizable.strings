@@ -1,0 +1,31 @@
+/* 
+  Localizable.strings
+  Diary
+
+  Created by Mary & Whales on 9/1/23.
+  
+*/
+
+"title" = "Diary";
+"NoTitle" = "No Title";
+
+"failedFetchDataAlertTitle" = "Failed Fetch Data";
+"failedFetchDataAlertMessage" = "Try again";
+"failedFetchDataAlertAction" = "Yes";
+
+"failedDeleteDataAlertTitle" = "Failed Delete Data";
+"failedDeleteDataAlertMessage" = "Try again";
+"failedDeleteDataAlertAction" = "Yes";
+
+"failedSaveDataAlertTitle" = "Failed Save Data";
+"failedSaveDataAlertMessage" = "Try again";
+"failedSaveDataAlertAction" = "Yes";
+
+"checkDeleteAlertTitle" = "Really?";
+"checkDeleteAlertMessage" = "Are you sure?";
+"checkDeleteAlertCancelAction" = "No";
+"checkDeleteAlertAction" = "Yes";
+
+"share" = "Share...";
+"delete" = "Delete";
+"cancel" = "Cancel";
