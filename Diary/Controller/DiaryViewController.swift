@@ -5,10 +5,15 @@
 //  last modified by Mary & Whales
 
 import UIKit
+import Kingfisher
+import CoreLocation
 
 final class DiaryViewController: UIViewController {
     private let diaryManager: DiaryEditable
+    private let locationManager: CLLocationManager
+    private let weatherManager: WeatherManager
     private let logger: Logger
+    private var openWeather: OpenWeather?
     
     private let tableView: UITableView = {
         let tableView = UITableView()
@@ -17,10 +22,17 @@ final class DiaryViewController: UIViewController {
         return tableView
     }()
     
-    init(diaryManager: DiaryEditable, logger: Logger = Logger()) {
+    init(
+        diaryManager: DiaryEditable,
+        locationManager: CLLocationManager = CLLocationManager(),
+        weatherManager: WeatherManager = WeatherManager(),
+        logger: Logger = Logger()
+    ) {
         self.diaryManager = diaryManager
+        self.locationManager = locationManager
+        self.weatherManager = weatherManager
         self.logger = logger
-        
+
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -32,6 +44,7 @@ final class DiaryViewController: UIViewController {
         super.viewDidLoad()
         
         configureUI()
+        configureLocations()
         configureTableView()
     }
     
@@ -40,6 +53,11 @@ final class DiaryViewController: UIViewController {
         
         refreshDiaries()
         tableView.reloadData()
+    }
+    
+    private func configureLocations() {
+        locationManager.delegate = self
+        checkUserCurrentLocationAuthorization(locationManager.authorizationStatus)
     }
     
     private func configureUI() {
@@ -60,7 +78,12 @@ final class DiaryViewController: UIViewController {
     }
     
     @objc private func tappedAddDiaryButton() {
-        let diaryContent = DiaryContent(title: "", body: "", timeInterval: Date().timeIntervalSince1970)
+        var diaryContent = DiaryContent()
+        
+        if let openWeather {
+            diaryContent.weatherTitle = openWeather.weather.first?.main
+            diaryContent.weatherId = openWeather.weather.first?.icon
+        }
         
         showEditingDiaryViewController(with: diaryContent)
     }
@@ -106,6 +129,11 @@ extension DiaryViewController: UITableViewDataSource {
         guard let diaryContent = diaryManager.diaryContents[safe: indexPath.row]
         else {
             return UITableViewCell()
+        }
+        
+        if let weatherId = diaryContent.weatherId,
+           let url = weatherManager.fetchWeatherImageURL(id: weatherId) {
+            cell.weatherImageView.kf.setImage(with: url)
         }
         
         cell.configureCell(data: diaryContent)
@@ -183,5 +211,72 @@ extension DiaryViewController {
                          preferredStyle: .alert,
                          actionConfigs: ("failedDeleteDataAlertAction".localized, .default, nil))
         }
+    }
+}
+
+extension DiaryViewController {
+    func showRequestLocationServiceAlert() {
+        let requestLocationServiceAlert = UIAlertController(
+            title: "위치 정보 이용",
+            message: "위치 서비스를 사용할 수 없습니다.\n디바이스의 '설정 > 개인정보 보호'에서 위치 서비스를 켜주세요.",
+            preferredStyle: .alert
+        )
+        
+        let goSetting = UIAlertAction(
+            title: "설정으로 이동",
+            style: .destructive
+        ) { _ in
+            if let appSetting = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(appSetting)
+            }
+        }
+        
+        let cancel = UIAlertAction(
+            title: "취소",
+            style: .default
+        )
+        
+        requestLocationServiceAlert.addAction(goSetting)
+        requestLocationServiceAlert.addAction(cancel)
+        
+        present(requestLocationServiceAlert, animated: true)
+    }
+    
+    func checkUserCurrentLocationAuthorization(_ status: CLAuthorizationStatus) {
+        switch status {
+        case .denied, .restricted:
+            showRequestLocationServiceAlert()
+        case .notDetermined:
+            locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+            locationManager.requestWhenInUseAuthorization()
+        case .authorizedWhenInUse, .authorizedAlways:
+            locationManager.requestLocation()
+        default:
+            fatalError("Invalid Authorization Status")
+        }
+    }
+}
+
+extension DiaryViewController: CLLocationManagerDelegate {
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        checkUserCurrentLocationAuthorization(manager.authorizationStatus)
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        Task {
+            let coordinate = locations.last!.coordinate
+            do {
+                openWeather = try await weatherManager.fetchWeather(
+                    lat: coordinate.latitude,
+                    lon: coordinate.longitude
+                )
+            } catch {
+                logger.osLog(error.localizedDescription)
+            }
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        logger.osLog(error.localizedDescription)
     }
 }
