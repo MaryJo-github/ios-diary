@@ -19,7 +19,8 @@ extension Diary {
     @NSManaged public var body: String
     @NSManaged public var timeInterval: Double
     @NSManaged public var id: UUID
-
+    @NSManaged public var weatherId: String?
+    @NSManaged public var weatherTitle: String?
 }
 
 extension Diary: Identifiable {
