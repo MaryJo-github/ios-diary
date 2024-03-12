@@ -26,10 +26,20 @@ final class DiaryTableViewCell: UITableViewCell {
         return label
     }()
     
+    let weatherImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        imageView.contentMode = .scaleAspectFit
+
+        return imageView
+    }()
+    
     private let previewLabel: UILabel = {
         let label = UILabel()
         label.font = .preferredFont(forTextStyle: .caption1)
         label.adjustsFontForContentSizeCategory = true
+        label.numberOfLines = 1
         
         return label
     }()
@@ -62,6 +72,13 @@ final class DiaryTableViewCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        titleLabel.text = nil
+        dateLabel.text = nil
+        previewLabel.text = nil
+        weatherImageView.image = nil
+    }
+    
     func configureCell(data: DiaryContent) {
         titleLabel.text = data.title.isEmpty ? "noTitle".localized : data.title
         dateLabel.text = data.date
@@ -70,6 +87,7 @@ final class DiaryTableViewCell: UITableViewCell {
     
     private func configureUI() {
         descriptionStackView.addArrangedSubview(dateLabel)
+        descriptionStackView.addArrangedSubview(weatherImageView)
         descriptionStackView.addArrangedSubview(previewLabel)
         
         titleStackView.addArrangedSubview(titleLabel)
@@ -86,6 +104,8 @@ final class DiaryTableViewCell: UITableViewCell {
             titleStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5),
             titleStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             titleStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            descriptionStackView.heightAnchor.constraint(equalTo: descriptionStackView.widthAnchor, multiplier: 0.1),
+            weatherImageView.widthAnchor.constraint(equalTo: descriptionStackView.heightAnchor, multiplier: 1)
         ])
     }
 }
