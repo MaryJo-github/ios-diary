@@ -37,7 +37,9 @@ final class DiaryManager: DiaryEditable {
             contents.append(DiaryContent(id: element.id,
                                          title: element.title,
                                          body: element.body,
-                                         timeInterval: element.timeInterval))
+                                         timeInterval: element.timeInterval,
+                                         weatherTitle: element.weatherTitle,
+                                         weatherId: element.weatherId))
         }
         
         diaryContents = contents
@@ -53,6 +55,8 @@ final class DiaryManager: DiaryEditable {
             managedObject.setValue(diaryContent.body, forKey: "body")
             managedObject.setValue(diaryContent.timeInterval, forKey: "timeInterval")
             managedObject.setValue(diaryContent.id, forKey: "id")
+            managedObject.setValue(diaryContent.weatherTitle, forKey: "weatherTitle")
+            managedObject.setValue(diaryContent.weatherId, forKey: "weatherId")
             
             try context.save()
         }
